@@ -20,12 +20,26 @@ const isDebugging = () => {
 
 let browser;
 let page;
+let logs = [];
+let errors = [];
 beforeAll(async () => {
   browser = await puppeteer.launch(isDebugging());
   page = await browser.newPage();
+  page.setRequestInterception(true);
+  // page.on('request', (interceptedRequest) => {
+  //   if (interceptedRequest.url.includes('mockapi')) {
+  //     interceptedRequest.abort();
+  //   } else {
+  //     interceptedRequest.continue();
+  //   }
+  // });
+  page.on('console', (c) => {
+    // console.log(c.text);
+    logs.push(c.text);
+  });
+  page.on('pageerror', (e) => errors.push(e.text));
   await page.goto('http://localhost:3000/');
   await page.emulate(iPhone);
-  // page.setViewport({ width: 500, height: 2400 });
 });
 
 describe('on page load', () => {
@@ -42,6 +56,12 @@ describe('on page load', () => {
     const listItems = await page.$$('[data-testid="navBarLi"]');
 
     expect(navbar).toBe(true);
+    if (listItems.length !== 4)
+      await page.screenshot({
+        path: 'screenshot.png',
+        // You have have the page.pdf to save a pdf instead of a screenshot.
+        // You can also set formatting options for the pdf or the screenshot
+      });
     expect(listItems.length).toBe(4);
   });
 
@@ -71,35 +91,49 @@ describe('on page load', () => {
 
       expect(firstNameCookie).not.toBeUndefined();
     });
+    test('does not have console logs', async () => {
+      expect(logs.length).toBe(3);
+    });
+    test('does not have exceptions', () => {
+      expect(errors.length).toBe(0);
+    });
+    // test.only('fails to fetch mock endpoint', async () => {
+    //   const h3 = await page.$eval(
+    //     '[data-testid="mockAPI"]',
+    //     (e) => e.innerHTML
+    //   );
+    //   expect(h3).toBe('Received mock data!');
+    // });
   });
+  /**
+ test('login form for iPhone works correctly', async () => {
+   const page2 = await browser.newPage();
+   await page2.emulate(iPhone);
+   await page2.goto('http://localhost:3000/');
+   
+   const firstName = await page2.$('[data-testid="firstName"]');
+   const lastName = await page2.$('[data-testid="lastName"]');
+   const email = await page2.$('[data-testid="email"]');
+   const password = await page2.$('[data-testid="password"]');
+   const submit = await page2.$('[data-testid="submit"]');
 
-  //   test('login form for iPhone works correctly', async () => {
-  //     const page2 = await browser.newPage();
-  //     await page2.emulate(iPhone);
-  //     await page2.goto('http://localhost:3000/');
-
-  //     const firstName = await page2.$('[data-testid="firstName"]');
-  //     const lastName = await page2.$('[data-testid="lastName"]');
-  //     const email = await page2.$('[data-testid="email"]');
-  //     const password = await page2.$('[data-testid="password"]');
-  //     const submit = await page2.$('[data-testid="submit"]');
-
-  //     await firstName.tap();
-  //     await page2.type('[data-testid="firstName"]', user.firstName);
-
-  //     await lastName.tap();
-  //     await page2.type('[data-testid="lastName"]', user.lastName);
-
-  //     await email.tap();
-  //     await page2.type('[data-testid="email"]', user.email);
-
-  //     await password.tap();
-  //     await page2.type('[data-testid="password"]', user.password);
-
-  //     await submit.tap();
-
-  //     await page2.waitForSelector('[data-testid="success"]');
-  //   }, 19000);
+   await firstName.tap();
+   await page2.type('[data-testid="firstName"]', user.firstName);
+   
+   await lastName.tap();
+   await page2.type('[data-testid="lastName"]', user.lastName);
+   
+   await email.tap();
+   await page2.type('[data-testid="email"]', user.email);
+   
+   await password.tap();
+   await page2.type('[data-testid="password"]', user.password);
+   
+   await submit.tap();
+   
+   await page2.waitForSelector('[data-testid="success"]');
+  }, 19000);
+  */
 });
 
 afterAll(() => {

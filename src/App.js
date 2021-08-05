@@ -9,7 +9,15 @@ class App extends Component {
   state = {
     complete: false,
     firstName: '',
+    mockAPI: {},
   };
+
+  async componentDidMount() {
+    const data = await fetch(
+      'https://610ac3d652d56400176aff81.mockapi.io/alien-test'
+    ).then((res) => res.json());
+    this.setState({ mockAPI: data });
+  }
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -32,22 +40,27 @@ class App extends Component {
           <nav data-testid='navbar' className='navbar' role='navigation'>
             <ul>
               <li data-testid='navBarLi' className='nav-li'>
-                <a href='#'>Home</a>
+                <div href='#'>Home</div>
               </li>
               <li data-testid='navBarLi' className='nav-li'>
-                <a href='#'>About</a>
+                <div href='#'>About</div>
               </li>
               <li data-testid='navBarLi' className='nav-li'>
-                <a href='#'>Skills</a>
+                <div href='#'>Skills</div>
               </li>
               <li data-testid='navBarLi' className='nav-li'>
-                <a href='#'>Works</a>
+                <div href='#'>Works</div>
               </li>
             </ul>
           </nav>
           <p>
             Edit <code>src/App.js</code> and save to reload.
           </p>
+          <h3 data-testid='mockAPI'>
+            {this.state.mockAPI
+              ? 'Received mock data!'
+              : 'Something went wrong'}
+          </h3>
           {this.state.complete ? (
             <SucessMessage />
           ) : (
